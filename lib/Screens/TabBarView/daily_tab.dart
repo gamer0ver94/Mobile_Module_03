@@ -41,9 +41,7 @@ class _DailyTabState extends State<DailyTab> {
             ),
             SizedBox(
                 height: 250,
-                child: Card(
-                    color: const Color.fromARGB(136, 0, 0, 0),
-                    child: MeteoChart(weather: weather))),
+                child: MeteoChart(weather: weather)),
             Card(
               color: const Color.fromARGB(112, 0, 0, 0),
               child: SingleChildScrollView(

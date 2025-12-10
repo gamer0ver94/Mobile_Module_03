@@ -15,6 +15,10 @@ class _MeteoChartWeeklyState extends State<MeteoChartWeekly> {
   Widget build(BuildContext context) {
     final weather = widget.weather;
 
+    if (weather.info.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     final minY = weather.info
             .map((d) => d["weekly_min_temp"] as num)
             .reduce((a, b) => a < b ? a : b)
@@ -26,6 +30,9 @@ class _MeteoChartWeeklyState extends State<MeteoChartWeekly> {
             .reduce((a, b) => a > b ? a : b)
             .toDouble() +
         2;
+
+    final yRange = maxY - minY;
+    final yInterval = (yRange / 5).ceilToDouble();
 
     return Card(
       color: const Color.fromARGB(136, 0, 0, 0),
@@ -41,11 +48,11 @@ class _MeteoChartWeeklyState extends State<MeteoChartWeekly> {
               sideTitles: SideTitles(
                 showTitles: true,
                 reservedSize: 40,
-                interval: 2,
+                interval: yInterval,
                 getTitlesWidget: (value, meta) {
                   return Text(
                     '${value.toInt()}°C',
-                    style: const TextStyle(fontSize: 10,color: Colors.white),
+                    style: const TextStyle(fontSize: 10, color: Colors.white),
                   );
                 },
               ),
@@ -56,7 +63,7 @@ class _MeteoChartWeeklyState extends State<MeteoChartWeekly> {
                 interval: 1,
                 getTitlesWidget: (value, meta) {
                   if (value < 0 || value > 6) return const SizedBox.shrink();
-      
+
                   final day = DateTime.now().add(Duration(days: value.toInt()));
                   return Text(
                     '${day.day}/${day.month}',
@@ -87,7 +94,6 @@ class _MeteoChartWeeklyState extends State<MeteoChartWeekly> {
               ),
               dotData: const FlDotData(show: true),
             ),
-      
             LineChartBarData(
               isCurved: true,
               color: Colors.blue,
