@@ -16,7 +16,7 @@ class _MeteoChartState extends State<MeteoChart> {
     final Weather weather = widget.weather;
     return LineChart(
       LineChartData(
-        gridData: FlGridData(show: true),
+        gridData: const FlGridData(show: true),
         titlesData: FlTitlesData(
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
@@ -25,7 +25,7 @@ class _MeteoChartState extends State<MeteoChart> {
               getTitlesWidget: (value, meta) {
                 return Text(
                   '${value.toInt()}°C',
-                  style: const TextStyle(fontSize: 10),
+                  style: const TextStyle(fontSize: 10, color: Colors.white),
                 );
               },
             ),
@@ -40,15 +40,15 @@ class _MeteoChartState extends State<MeteoChart> {
                 final hour = value.toInt().toString().padLeft(2, '0');
                 return Text(
                   '$hour:00',
-                  style: const TextStyle(fontSize: 10),
+                  style: const TextStyle(fontSize: 10, color: Colors.white),
                 );
               },
             ),
           ),
-          rightTitles: AxisTitles(
+          rightTitles: const AxisTitles(
             sideTitles: SideTitles(showTitles: false),
           ),
-          topTitles: AxisTitles(
+          topTitles: const AxisTitles(
             sideTitles: SideTitles(showTitles: false),
           ),
         ),

@@ -28,16 +28,28 @@ class _WeatherAppState extends State<WeatherApp>
   }
 
   void requestGpsLocation() async {
-    try {
-      Location currentLocation = await updateGeoLocation();
-      location = currentLocation;
-      if (location.latitude.isNotEmpty) {
-        updateWeather();
-      }
-    } catch (error) {
-      errorMessage = error.toString();
+  try {
+    bool granted = await requestLocationPermission();
+    if (!granted) {
+      setState(() {
+        errorMessage = "Location permission not granted";
+      });
+      return;
     }
+    Location currentLocation = await updateGeoLocation();
+    setState(() {
+      location = currentLocation;
+    });
+    if (location.latitude.isNotEmpty && location.longitude.isNotEmpty) {
+      await updateWeather();
+    }
+  } catch (error) {
+    setState(() {
+      errorMessage = error.toString();
+    });
   }
+}
+
 
   void changeControllerIndex(newIndex) {
     setState(() {
@@ -83,23 +95,23 @@ class _WeatherAppState extends State<WeatherApp>
   List<Widget> viewScreen = [
     const Tab(
       text: "Currently",
-      icon: const Icon(Icons.north_west_rounded),
+      icon:  Icon(Icons.today),
     ),
     const Tab(
       text: "Daily",
-      icon: const Icon(Icons.view_day_rounded),
+      icon: Icon(Icons.view_day),
     ),
     const Tab(
       text: "Weekly",
-      icon: const Icon(Icons.next_week),
+      icon: Icon(Icons.view_week),
     )
   ];
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData(
-        textTheme: TextTheme(
-          bodyMedium: TextStyle(fontSize: 30,fontWeight: FontWeight.bold)
+        textTheme: const TextTheme(
+          bodyMedium: TextStyle(fontSize: 30,fontWeight: FontWeight.bold, fontFamily: "Game")
         )
       ),
         home: Scaffold(
@@ -109,7 +121,7 @@ class _WeatherAppState extends State<WeatherApp>
       ),
       body: DecoratedBox(
         decoration: const BoxDecoration(
-            image: DecorationImage(image: AssetImage('assets/bg.jpg'),
+            image: DecorationImage(image: AssetImage('assets/day.jpeg'),
             fit: BoxFit.cover)),
         child: WeatherBarView(
           location: location,
@@ -118,9 +130,17 @@ class _WeatherAppState extends State<WeatherApp>
           errorMessage: errorMessage,
         ),
       ),
-      bottomNavigationBar: TabBar(
-        controller: _tabController,
-        tabs: viewScreen,
+      bottomNavigationBar: SafeArea(
+        child: Container(
+          color: const Color.fromARGB(255, 0, 0, 0),
+          child: TabBar(
+            indicatorColor: const Color.fromARGB(255, 0, 102, 255),
+            labelColor: const Color.fromARGB(255, 0, 102, 255),
+            unselectedLabelColor: Colors.white,
+            controller: _tabController,
+            tabs: viewScreen,
+          ),
+        ),
       ),
     ));
   }

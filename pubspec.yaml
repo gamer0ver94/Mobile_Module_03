@@ -23,5 +23,8 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/bg.jpg
-
+    - assets/
+  fonts:
+    - family: game
+      fonts:
+        - asset: assets/fonts/Bitcount_Prop_Single/BitcountPropSingle-VariableFont_CRSV,ELSH,ELXP,slnt,wght.ttf

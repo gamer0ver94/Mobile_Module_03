@@ -15,96 +15,94 @@ class _MeteoChartWeeklyState extends State<MeteoChartWeekly> {
   Widget build(BuildContext context) {
     final weather = widget.weather;
 
-    // Compute min/max Y with padding
     final minY = weather.info
             .map((d) => d["weekly_min_temp"] as num)
             .reduce((a, b) => a < b ? a : b)
             .toDouble() -
-        2; // padding below lowest point
+        2;
 
     final maxY = weather.info
             .map((d) => d["weekly_max_temp"] as num)
             .reduce((a, b) => a > b ? a : b)
             .toDouble() +
-        2; // padding above highest point
+        2;
 
-    return LineChart(
-      LineChartData(
-        minX: -0.5, // padding before first day
-        maxX: 6.5,  // padding after last day
-        minY: minY,
-        maxY: maxY,
-        gridData: FlGridData(show: true),
-        titlesData: FlTitlesData(
-          leftTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 40,
-              interval: 2,
-              getTitlesWidget: (value, meta) {
-                // Only show integer temperatures
-                return Text(
-                  '${value.toInt()}°C',
-                  style: const TextStyle(fontSize: 10),
-                );
-              },
+    return Card(
+      color: const Color.fromARGB(136, 0, 0, 0),
+      child: LineChart(
+        LineChartData(
+          minX: -0.5,
+          maxX: 6.5,
+          minY: minY,
+          maxY: maxY,
+          gridData: const FlGridData(show: true),
+          titlesData: FlTitlesData(
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: 40,
+                interval: 2,
+                getTitlesWidget: (value, meta) {
+                  return Text(
+                    '${value.toInt()}°C',
+                    style: const TextStyle(fontSize: 10,color: Colors.white),
+                  );
+                },
+              ),
+            ),
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                interval: 1,
+                getTitlesWidget: (value, meta) {
+                  if (value < 0 || value > 6) return const SizedBox.shrink();
+      
+                  final day = DateTime.now().add(Duration(days: value.toInt()));
+                  return Text(
+                    '${day.day}/${day.month}',
+                    style: const TextStyle(fontSize: 10, color: Colors.white),
+                  );
+                },
+              ),
+            ),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
             ),
           ),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              interval: 1,
-              getTitlesWidget: (value, meta) {
-                // Only show for 0..6
-                if (value < 0 || value > 6) return const SizedBox.shrink();
-
-                final day = DateTime.now().add(Duration(days: value.toInt()));
-                return Text(
-                  '${day.day}/${day.month}', // day/month format
-                  style: const TextStyle(fontSize: 10),
-                );
-              },
+          borderData: FlBorderData(show: true),
+          lineBarsData: [
+            LineChartBarData(
+              isCurved: true,
+              color: Colors.red,
+              barWidth: 3,
+              spots: List.generate(
+                7,
+                (index) => FlSpot(
+                  index.toDouble(),
+                  (weather.info[index]["weekly_max_temp"] as num).toDouble(),
+                ),
+              ),
+              dotData: const FlDotData(show: true),
             ),
-          ),
-          rightTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
-          topTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
+      
+            LineChartBarData(
+              isCurved: true,
+              color: Colors.blue,
+              barWidth: 3,
+              spots: List.generate(
+                7,
+                (index) => FlSpot(
+                  index.toDouble(),
+                  (weather.info[index]["weekly_min_temp"] as num).toDouble(),
+                ),
+              ),
+              dotData: const FlDotData(show: true),
+            ),
+          ],
         ),
-        borderData: FlBorderData(show: true),
-        lineBarsData: [
-          // MAX temperature line (red)
-          LineChartBarData(
-            isCurved: true,
-            color: Colors.red,
-            barWidth: 3,
-            spots: List.generate(
-              7,
-              (index) => FlSpot(
-                index.toDouble(),
-                (weather.info[index]["weekly_max_temp"] as num).toDouble(),
-              ),
-            ),
-            dotData: FlDotData(show: true),
-          ),
-
-          // MIN temperature line (blue)
-          LineChartBarData(
-            isCurved: true,
-            color: Colors.blue,
-            barWidth: 3,
-            spots: List.generate(
-              7,
-              (index) => FlSpot(
-                index.toDouble(),
-                (weather.info[index]["weekly_min_temp"] as num).toDouble(),
-              ),
-            ),
-            dotData: FlDotData(show: true),
-          ),
-        ],
       ),
     );
   }

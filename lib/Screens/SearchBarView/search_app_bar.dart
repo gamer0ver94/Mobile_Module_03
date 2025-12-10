@@ -1,121 +1,170 @@
 import 'package:flutter/material.dart';
 import 'package:weather_app/Models/location_model.dart';
-import 'package:weather_app/Models/weather_model.dart';
 import 'package:weather_app/Services/geolocation.dart';
 
 class SearchAppBar extends StatefulWidget implements PreferredSizeWidget {
   final Function(Location) update;
   final Function() requestGpsLocation;
-  const SearchAppBar({super.key, required this.update, required this.requestGpsLocation});
+
+  const SearchAppBar({
+    super.key,
+    required this.update,
+    required this.requestGpsLocation,
+  });
 
   @override
   State<SearchAppBar> createState() => _SearchAppBarState();
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(80);
 }
 
 class _SearchAppBarState extends State<SearchAppBar> {
   var sugestedCountriesData = {};
   List<String> countriesSuggestion = [];
-  Location location = Location.empty();
-  Weather weatherData = Weather(data: []);
+  TextEditingController controller = TextEditingController();
+  final LayerLink _layerLink = LayerLink();
+  OverlayEntry? _overlayEntry;
 
+  void searchLocations(String query) async {
+    if (query.isEmpty) {
+      _removeOverlay();
+      return;
+    }
+
+    List results = await getGeo(query, sugestedCountriesData);
+    countriesSuggestion = List<String>.from(results.take(5));
+
+    if (countriesSuggestion.isNotEmpty) {
+      _showOverlay();
+    } else {
+      _removeOverlay();
+    }
+  }
+
+  void _showOverlay() {
+    _removeOverlay();
+
+    _overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        width: MediaQuery.of(context).size.width - 16,
+        child: CompositedTransformFollower(
+          link: _layerLink,
+          showWhenUnlinked: false,
+          offset: const Offset(0, 50),
+          child: Material(
+            elevation: 4,
+            borderRadius: BorderRadius.circular(8),
+            child: ListView(
+              padding: EdgeInsets.zero,
+              shrinkWrap: true,
+              children: countriesSuggestion.map((fullName) {
+                String city = fullName.split(" ")[0];
+                String rest = fullName.substring(city.length);
+
+                return ListTile(
+                  title: Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: city,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                        TextSpan(
+                          text: rest,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.normal,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  onTap: () => selectLocation(fullName),
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(_overlayEntry!);
+  }
+
+  void _removeOverlay() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+  }
+
+  void selectLocation(String name) {
+    if (!sugestedCountriesData.containsKey(name)) return;
+
+    final location = Location(
+      city: sugestedCountriesData[name]['name'],
+      state: sugestedCountriesData[name]['admin1'],
+      country: sugestedCountriesData[name]['country'],
+      latitude: sugestedCountriesData[name]['latitude'].toString(),
+      longitude: sugestedCountriesData[name]['longitude'].toString(),
+    );
+
+    widget.update(location);
+    controller.clear();
+    _removeOverlay();
+  }
+
+  @override
+  void dispose() {
+    _removeOverlay();
+    controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return AppBar(
-      backgroundColor: const Color.fromARGB(255, 59, 59, 59),
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(0),
-        child: DefaultTabController(
-            length: 2,
-            child: TabBar(
-                tabAlignment: TabAlignment.fill,
-                dividerHeight: 100,
-                indicator: const BoxDecoration(color: Colors.transparent),
-                indicatorColor: Colors.red,
-                tabs: [
-                  Tab(
-                    child: Autocomplete<String>(optionsBuilder:
-                        (TextEditingValue textEditingValue) async {
-                      if (textEditingValue.text.isEmpty) {
-                        return [];
-                      } else {
-                        List test = await getGeo(
-                            textEditingValue.text, sugestedCountriesData);
-                        List countriesList = [];
-                        countriesList = test;
-                        countriesSuggestion = List<String>.from(
-                            countriesList.map((item) => item));
-                        return countriesSuggestion;
-                      }
-                    }, onSelected: (String selected) async {
-                      try {
-                        location = Location(
-                          city: sugestedCountriesData[selected]['name'],
-                          state: sugestedCountriesData[selected]['admin1'],
-                          country: sugestedCountriesData[selected]['country'],
-                          latitude: sugestedCountriesData[selected]['latitude']
-                              .toString(),
-                          longitude: sugestedCountriesData[selected]
-                                  ['longitude']
-                              .toString(),
-                        );
-                        widget.update(location);
-                      } catch (error) {
-                        print('on Select there was an error $error');
-                      }
-                    }, fieldViewBuilder:
-                        (context, controller, focusNode, onFieldSubmitted) {
-                      return TextField(
-                        onTap: () => {controller.clear(), controller.text = ''},
-                        onSubmitted: (value) async => {
-                          if (countriesSuggestion.isNotEmpty)
-                            {
-                              location = Location(
-                                city: sugestedCountriesData[countriesSuggestion[0]]['name'],
-                                state: sugestedCountriesData[countriesSuggestion[0]]['admin1'],
-                                country: sugestedCountriesData[countriesSuggestion[0]]['country'],
-                                latitude: sugestedCountriesData[countriesSuggestion[0]]['latitude']
-                                    .toString(),
-                                longitude: sugestedCountriesData[countriesSuggestion[0]]['longitude']
-                                    .toString(),
-                              ),
-                              
-                              widget.update(location),
-                              controller.clear(),
-                              controller.text = ''
-                            }
-                          else
-                            {
-                             widget.update(Location.empty())
-                            }
-                        },
-                        controller: controller,
-                        focusNode: focusNode,
-                        decoration: const InputDecoration(
-                          labelStyle: TextStyle(color: Colors.white),
-                          labelText: 'Search location ...',
-                          icon: Icon(
-                            Icons.search,
-                            color: Colors.white,
-                          ),
+    return DefaultTabController(
+      length: 2,
+      child: AppBar(
+        backgroundColor: const Color.fromARGB(255, 0, 0, 0),
+        automaticallyImplyLeading: false,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(80),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: CompositedTransformTarget(
+                    link: _layerLink,
+                    child: TextField(
+                      controller: controller,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(
+                        hintText: 'Search location...',
+                        hintStyle: TextStyle(color: Colors.white70),
+                        prefixIcon: Icon(Icons.search, color: Colors.white),
+                        filled: true,
+                        fillColor: Color.fromARGB(255, 41, 41, 41),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(8)),
+                          borderSide: BorderSide.none,
                         ),
-                      );
-                    }),
+                      ),
+                      onChanged: (value) => searchLocations(value),
+                    ),
                   ),
-                  Tab(
-                    child: IconButton(
-                        icon: const Icon(
-                          Icons.location_pin,
-                          color: Colors.white,
-                        ),
-                        onPressed: () {
-                          widget.requestGpsLocation();
-                        }),
-                  )
-                ])),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.location_pin, color: Colors.white),
+                  onPressed: () => widget.requestGpsLocation(),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

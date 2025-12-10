@@ -45,7 +45,7 @@ Future<bool> requestLocationPermission() async {
 Future<dynamic> fetchWeather(double latitude, double longitude) async {
   try {
     final response = await http.get(Uri.parse(
-        "https://api.open-meteo.com/v1/forecast?latitude=$latitude&longitude=$longitude&current=weather_code&hourly=temperature_2m,cloud_cover,wind_speed_10m&dayly=weather_code&forecast_days=7&daily=weather_code"));
+        "https://api.open-meteo.com/v1/forecast?latitude=$latitude&longitude=$longitude&current=weather_code&hourly=temperature_2m,cloud_cover,wind_speed_10m,weather_code&dayly=weather_code&forecast_days=7&daily=weather_code"));
 
     if (response.statusCode == 200) {
       var data = jsonDecode(response.body);

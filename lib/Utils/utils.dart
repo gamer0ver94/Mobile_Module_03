@@ -22,3 +22,34 @@ double getMaximumTemp(dynamic data, int index) {
   }
   return maxMemp;
 }
+
+String getWeatherIconPath(String condition) {
+  if (condition.toLowerCase().contains("clear sky")) {
+    return "assets/clear_sky.png";
+  } else if (condition.toLowerCase().contains("partly cloudy") ||
+      condition.toLowerCase().contains("overcast") ||
+      condition.toLowerCase().contains("mainly clear")) {
+    return "assets/mainly_clear.png";
+  } else if (condition.toLowerCase().contains("fog")) {
+    return "assets/fog.png";
+  } else if (condition.toLowerCase().contains("rain")) {
+    return "assets/rain.png";
+  } else if (condition.toLowerCase().contains("snow")) {
+    return "assets/rain.png";
+  } else if (condition.toLowerCase().contains("thunderstorm")) {
+    return "assets/thunderstorm.png";
+  }
+  else if (condition.toLowerCase().contains("drizzle")){
+    return "assets/drizzle.png";
+  }
+  else if (condition.toLowerCase().contains("snow")){
+    return "assets/snow_rain.png";
+  }
+  else if (condition.toLowerCase().contains("freezing rain")){
+    return "assets/freezing_rain.png";
+  }
+  else if (condition.toLowerCase().contains("cloudy")){
+    return "assets/cloudy.png";
+  }
+  return "assets/notfound.png";
+}
